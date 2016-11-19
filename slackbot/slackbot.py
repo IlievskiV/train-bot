@@ -1,24 +1,38 @@
 import time
 from slackclient import SlackClient
+import pyowm
 
 BOT_ID = 'U34T5FLKX'
 AT_BOT = "<@" + BOT_ID + ">"
+EXPECTED_FORMAT = "Departure city, Arrival city, hh:mm"
 
-# instantiate Slack & Twilio clients
+# instantiate Slack & Twilio clients staff to be moved in env vars
 slack_client = SlackClient('xoxb-106923530677-P2QYlS5doMvGmL4ZxzaSJPVP')
+owm = pyowm.OWM('e67357c59746fa7f54d5d4fb8c7b1755')
 
 
 def check(response):
     if len(response) == 2:
         data = []
         if response[0] == '':
-            data = [x.strip() for x in response[1].strip().split(" ")]
+            data = [x.strip() for x in response[1].strip().split(",")]
             print(data)
         elif response[1] == '':
-            data = [x.strip() for x in response[0].strip().split(" ")]
+            data = [x.strip() for x in response[0].strip().split(",")]
         if len(data) == 3:
             return True
     return False
+
+
+def weather(city):
+    """
+    :param city: city for which we need the weather, it
+    need to be of the format city,{country code}
+    Returns the weather status in lower case
+    """
+    observation = owm.weather_at_place(city)
+    w = observation.get_weather().get_detailed_status().lower()
+    return w
 
 
 def handle_command(command, channel):
@@ -29,11 +43,16 @@ def handle_command(command, channel):
     """
     if command is None:
         response = {
-            'answer': "Hey, you talkin' about me? If you need my help, don't mention me in the middle of your sentence."}
+            'answer': "Hey, you talkin' about me? If you need my help, don't mention me in the middle of your sentence.\
+                      And remember your question should be of the form: " + "\b" + EXPECTED_FORMAT}
     else:
+        # place holder, the prediction function should be called here
         response = {'answer': "Bojan i Vladimir rabotat uste, nabrzo se gotovi"}
+        # if the input was not correct it should inform the client
         if 'error' in response:
             response = {'answer': "I don't see what you are talking about. Please send me existing data."}
+        response['answer'] = response['answer'] + "\nIt is good to know that at " + command[1] + \
+                             " you can expect " + weather(command[1])+"."
 
     slack_client.api_call("chat.postMessage", channel=channel,
                           text=response['answer'], as_user=True)
@@ -63,7 +82,6 @@ if __name__ == "__main__":
         while True:
             command, channel = parse_slack_output(slack_client.rtm_read())
             if channel:
-                print(channel, ": ", command)
                 handle_command(command, channel)
             time.sleep(READ_WEBSOCKET_DELAY)
     else:
