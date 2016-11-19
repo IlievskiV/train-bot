@@ -1,11 +1,12 @@
 import time
 from slackclient import SlackClient
+from slack_bot import *
 BOT_ID = 'U34T5FLKX'
 
 AT_BOT = "<@" + BOT_ID + ">"
 
 # instantiate Slack & Twilio clients
-slack_client = SlackClient('xoxb-106923530677-xZphNLDYWcoLDj0ondNhcP0A')
+slack_client = SlackClient('xoxb-106923530677-81bbIqwPYR0RVdX680NbcSci')
 
 
 def handle_command(command, channel):
@@ -46,3 +47,4 @@ if __name__ == "__main__":
             time.sleep(READ_WEBSOCKET_DELAY)
     else:
         print("Connection failed. Invalid Slack token or bot ID?")
+xoxb-106923530677-xZphNLDYWcoLDj0ondNhcP0A
