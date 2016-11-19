@@ -5,7 +5,7 @@ BOT_ID = 'U34T5FLKX'
 AT_BOT = "<@" + BOT_ID + ">"
 
 # instantiate Slack & Twilio clients
-slack_client = SlackClient('xoxb-106923530677-xZphNLDYWcoLDj0ondNhcP0A')
+slack_client = SlackClient('xoxb-106923530677-jB9HuzIm3djkVFHt24J68si9')
 
 
 def handle_command(command, channel):
@@ -30,7 +30,8 @@ def parse_slack_output(slack_rtm_output):
         for output in output_list:
             if output and 'text' in output and AT_BOT in output['text']:
                 # return text after the @ mention, whitespace removed
-                return output['text'].split(AT_BOT)[1].strip().lower(), \
+                print("Text ", output['text'])
+                return output['text'].split(AT_BOT).strip().lower(), \
                        output['channel']
     return None, None
 
@@ -42,6 +43,7 @@ if __name__ == "__main__":
         while True:
             command, channel = parse_slack_output(slack_client.rtm_read())
             if command and channel:
+                print(channel, ": ", command)
                 handle_command(command, channel)
             time.sleep(READ_WEBSOCKET_DELAY)
     else:
