@@ -15,13 +15,15 @@ def check(response):
     if len(response) == 2:
         data = []
         if response[0] == '':
-            data = [x.strip() for x in response[1].strip().split(",")]
+            data = [x.strip() for x in response[1].strip().split(',')]
             print(data)
         elif response[1] == '':
-            data = [x.strip() for x in response[0].strip().split(",")]
+            data = [x.strip() for x in response[0].strip().split(',')]
         if len(data) == 3:
-            return True
-    return False
+            time = data[2].split(':')
+            if len(time) == 2 and 0 <= int(time[0]) < 24 and 0 <= int(time[1]) < 60:
+                return data
+    return None
 
 
 def weather(city):
@@ -43,16 +45,15 @@ def handle_command(command, channel):
     """
     if command is None:
         response = {
-            'answer': "Hey, you talkin' about me? If you need my help, don't mention me in the middle of your sentence.\
-                      And remember your question should be of the form: " + "\b" + EXPECTED_FORMAT}
+            'answer': "Hey, you talkin' about me? If you need my help, don't mention me in the middle of your sentence. And remember your question should be of the form: " + EXPECTED_FORMAT}
     else:
         # place holder, the prediction function should be called here
         response = {'answer': "Bojan i Vladimir rabotat uste, nabrzo se gotovi"}
         # if the input was not correct it should inform the client
         if 'error' in response:
             response = {'answer': "I don't see what you are talking about. Please send me existing data."}
-        response['answer'] = response['answer'] + "\nIt is good to know that at " + command[1] + \
-                             " you can expect " + weather(command[1])+"."
+        response['answer'] = response['answer'] + " It is good to know that at " + command[1] + \
+                             " you can expect " + weather(command[1]+",ch")+"."
 
     slack_client.api_call("chat.postMessage", channel=channel,
                           text=response['answer'], as_user=True)
@@ -69,9 +70,8 @@ def parse_slack_output(slack_rtm_output):
         for output in output_list:
             if output and 'text' in output and AT_BOT in output['text']:
                 splitted_array = output['text'].split(AT_BOT)
-                if check(splitted_array):
-                    return splitted_array, output['channel']
-                return None, output['channel']
+                data = check(splitted_array)
+                return data, output['channel']
     return None, None
 
 
