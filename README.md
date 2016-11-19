@@ -1,5 +1,5 @@
 # train-bot
-Chat Bot for helping the traveling with the SBB trains in Switzerland.
+Chat Bot to ease the traveling with the SBB trains in Switzerland.
 Developed during the LauzHack 2016 at EPFL.
 
 
