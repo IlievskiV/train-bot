@@ -13,6 +13,10 @@ owm = pyowm.OWM('e67357c59746fa7f54d5d4fb8c7b1755')
 
 
 def check(response):
+    """
+        Checks if the received question from the client is in the good format.
+        If yes it splits and returns the data in the format [departure city, arrival city, hh:mm]
+    """
     if len(response) == 2:
         data = []
         if response[0] == '':
@@ -21,17 +25,17 @@ def check(response):
         elif response[1] == '':
             data = [x.strip() for x in response[0].strip().split(',')]
         if len(data) == 3:
-            time = data[2].split(':')
-            if len(time) == 2 and 0 <= int(time[0]) < 24 and 0 <= int(time[1]) < 60:
+            t = data[2].split(':')
+            if len(t) == 2 and 0 <= int(t[0]) < 24 and 0 <= int(t[1]) < 60:
                 return data
     return None
 
 
 def weather(city):
     """
-    :param city: city for which we need the weather, it
-    need to be of the format city,{country code}
-    Returns the weather status in lower case
+        :param city: city for which we need the weather, it
+        need to be of the format city,{country code}
+        Returns the weather status in lower case
     """
     observation = owm.weather_at_place(city)
     w = observation.get_weather().get_detailed_status().lower()
@@ -45,21 +49,25 @@ def handle_command(command, channel):
         returns back what it needs for clarification.
     """
     if command is None:
-        response = {
-            'answer': "Hey, you talkin' about me? If you need my help, don't mention me in the middle of your sentence. And remember your question should be of the form: " + EXPECTED_FORMAT}
+        response = "Hey, you talkin' about me? If you need my help, don't mention me in the middle of your sentence.\
+                       And remember your question should be of the form: " + EXPECTED_FORMAT
+        slack_client.api_call("chat.postMessage", channel=channel,
+                              text=response, as_user=True)
     else:
-        # place holder, the prediction function should be called here
-        time = command[2].split(':')
-        response = {'answer': ''}
-        response['answer'] = predit(command[0], command[1], time[0], time[1])
+        # the command is in good format, otherwise we won't be here
+        t = command[2].split(':')
+        response = predit(command[0], command[1], t[0], t[1])
         # if the input was not correct it should inform the client
-        if 'error' in response:
-            response = {'answer': "I don't see what you are talking about. Please send me existing data."}
-        response['answer'].append(" It is good to know that at " + command[1] + \
-                            " you can expect " + weather(command[1]+",ch")+".")
-
-    slack_client.api_call("chat.postMessage", channel=channel,
-                          text=response['answer'], as_user=True)
+        # The error for wrong city may be handled later
+        # if 'error' in response:
+        #    response = {'answer': "I don't see what you are talking about. Please send me existing data."}
+        response.append(" It is good to know that at " + command[1] +
+                        " you can expect " + weather(command[1] + ",ch") + ".")
+        send = 'Hi there! Here is some information that may be useful for your trip.\n'
+        for a in response:
+            send = send + "\n" + a
+        slack_client.api_call("chat.postMessage", channel=channel,
+                              text=send, as_user=True)
 
 
 def parse_slack_output(slack_rtm_output):
@@ -81,7 +89,7 @@ def parse_slack_output(slack_rtm_output):
 if __name__ == "__main__":
     READ_WEBSOCKET_DELAY = 1  # 1 second delay between reading from firehose
     if slack_client.rtm_connect():
-        print("StarterBot connected and running!")
+        print("SlackBot connected and running!")
         while True:
             command, channel = parse_slack_output(slack_client.rtm_read())
             if channel:
