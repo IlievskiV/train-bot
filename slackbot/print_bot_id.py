@@ -2,9 +2,9 @@ import os
 from slackclient import SlackClient
 
 
-BOT_NAME = 'help-me-sbb'
+BOT_NAME = 'sbb-help'
 
-slack_client = SlackClient('xoxb-106923530677-P2QYlS5doMvGmL4ZxzaSJPVP')
+slack_client = SlackClient(os.environ.get('SLACK_TOKEN'))
 
 
 if __name__ == "__main__":

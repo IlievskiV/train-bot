@@ -2,14 +2,15 @@ import time
 from slackclient import SlackClient
 import pyowm
 from ML.predict import *
+import os
 
-BOT_ID = 'U34T5FLKX'
-AT_BOT = "<@" + BOT_ID + ">"
+BOT_ID = os.environ.get('SLACK_ID')
+AT_BOT = "<@" + str(BOT_ID) + ">"
 EXPECTED_FORMAT = "Departure city, Arrival city, hh:mm"
 
 # instantiate Slack & Twilio clients staff to be moved in env vars
-slack_client = SlackClient('xoxb-106923530677-7Kr3xs08MZao1VTvbFSskiRU')
-owm = pyowm.OWM('e67357c59746fa7f54d5d4fb8c7b1755')
+slack_client = SlackClient(os.environ.get('SLACK_TOKEN'))
+owm = pyowm.OWM(os.environ.get('OWM_TOKEN'))
 
 
 def check(response):
@@ -49,8 +50,7 @@ def handle_command(command, channel):
         returns back what it needs for clarification.
     """
     if command is None:
-        response = "Hey, you talkin' about me? If you need my help, don't mention me in the middle of your sentence.\
-                       And remember your question should be of the form: " + EXPECTED_FORMAT
+        response = "Hey, you talkin' about me? If you need my help, don't mention me in the middle of your sentence. And remember your question should be of the form: " + EXPECTED_FORMAT
         slack_client.api_call("chat.postMessage", channel=channel,
                               text=response, as_user=True)
     else:
@@ -63,7 +63,7 @@ def handle_command(command, channel):
         #    response = {'answer': "I don't see what you are talking about. Please send me existing data."}
         response.append(" It is good to know that at " + command[1] +
                         " you can expect " + weather(command[1] + ",ch") + ".")
-        send = 'Hi there! Here is some information that may be useful for your trip.\n'
+        send = 'Hi there! Here is some information that may be useful for your trip.'
         for a in response:
             send = send + "\n" + a
         slack_client.api_call("chat.postMessage", channel=channel,
